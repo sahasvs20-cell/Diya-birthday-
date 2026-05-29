@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy Birthday Kunjuuu</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #d61a3c 0%, #8a0f25 50%, #4a020d 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Romantic Floating Layer */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 0);
+            background-size: 24px 24px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .decorations-bg {
+            position: absolute;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .petal {
+            position: absolute;
+            display: block;
+            pointer-events: none;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* PAGE 1: Lock Screen Container */
+        .main-container {
+            display: flex;
+            background: rgba(20, 0, 5, 0.65);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255, 105, 180, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 192, 203, 0.2);
+            max-width: 900px;
+            width: 92%;
+            gap: 40px;
+            align-items: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .photo-side { flex: 1; display: flex; justify-content: center; }
+        .photo-frame {
+            width: 100%; max-width: 320px; aspect-ratio: 1 / 1;
+            border: 12px solid #fffdfa; border-bottom: 45px solid #fffdfa; 
+            border-radius: 4px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            overflow: hidden; background-color: #eae1d4; transform: rotate(-3deg);
+        }
+        .photo-frame img { width: 100%; height: 100%; object-fit: contain; }
+
+        .control-side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 25px; }
+
+        #timer {
+            font-size: 1.4rem; font-weight: bold; letter-spacing: 1px;
+            background: linear-gradient(90deg, rgba(138, 15, 37, 0.6), rgba(214, 26, 60, 0.6));
+            padding: 12px 25px; border-radius: 15px; border: 1px solid rgba(255, 192, 203, 0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); width: 100%; text-align: center; color: #ffe3e7;
+        }
+
+        .passcode-display {
+            width: 100%; height: 55px; background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px; color: #8a0f25; font-size: 2rem;
+            display: flex; justify-content: center; align-items: center;
+            letter-spacing: 6px; font-weight: bold; box-shadow: inset 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; }
+        .key {
+            background: linear-gradient(135deg, #ffffff 0%, #f5e6e8 100%); color: #8a0f25;
+            border: none; padding: 18px; font-size: 1.5rem; font-weight: bold; border-radius: 50%;
+            aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3); -webkit-tap-highlight-color: transparent;
+        }
+        .key:active { transform: scale(0.85); background: #ffe5ec; }
+        .key.clear { background: linear-gradient(135deg, #ff6b8b 0%, #cc1636 100%); color: white; border-radius: 15px; aspect-ratio: auto; }
+        .key.enter { background: linear-gradient(135deg, #2ec4b6 0%, #0f9f90 100%); color: white; border-radius: 15px; aspect-ratio: auto; box-shadow: 0 6px 15px rgba(15, 159, 144, 0.4); }
+
+        /* PAGE 2: Celebration Overlay Screen */
+        #celebration-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(74, 2, 13, 0.95) 0%, rgba(20, 0, 5, 0.98) 100%);
+            z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.8s ease;
+        }
+        #celebration-screen.active { opacity: 1; pointer-events: auto; }
+        .bday-text { font-size: 3.8rem; color: #fff; text-align: center; font-weight: bold; text-shadow: 0 0 10px #ff4a6b; }
+
+        /* PAGE 3: Cake Room */
+        #cake-section { display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 15; width: 100%; }
+        .cake-title { font-size: 2.5rem; color: #fffbfa; margin-bottom: 35px; font-style: italic; }
+        .cake-display { position: relative; width: 320px; height: 320px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; margin-bottom: 40px; }
+        .cake-stand { width: 290px; height: 18px; background: linear-gradient(to right, #eaeaea, #ffffff 30%, #d1d1d1 70%, #b5b5b5); border-radius: 50%; position: absolute; bottom: 5px; z-index: 1; }
+        .candle-wrapper { position: absolute; bottom: 175px; z-index: 10; display: flex; flex-direction: column; align-items: center; }
+        .real-candle { width: 12px; height: 65px; background: linear-gradient(to right, #ffccd5, #ffffff, #ff4a6b, #ffccd5); border-radius: 6px; }
+        .real-flame { width: 16px; height: 30px; background: radial-gradient(ellipse at bottom, #ffffff 0%, #ffea00 25%, #ff5500 70%, rgba(255,85,0,0) 100%); border-radius: 50% 50% 38% 38%; position: absolute; top: -34px; box-shadow: 0 0 25px #ffaa00; }
+        .cake-body { position: relative; width: 240px; height: 165px; background: linear-gradient(to right, #b0465c 0%, #fa96ad 25%, #fcaec1 50%, #f0849d 75%, #943247 100%); border-radius: 120px / 35px; z-index: 2; }
+        .cake-top-surface { position: absolute; top: 0; left: 0; width: 240px; height: 50px; background: radial-gradient(circle at 50% 30%, #fff0f3 0%, #ffb3c1 70%, #e06d86 100%); border-radius: 50%; z-index: 3; }
+        .frosting-drips { position: absolute; top: 30px; left: 0; width: 100%; height: 40px; z-index: 4; }
+        .drip { position: absolute; background: #ffb3c1; width: 14px; border-radius: 0 0 8px 8px; }
+        .drip-1 { left: 30px; height: 22px; } .drip-2 { left: 75px; height: 32px; width: 16px; background: #ffa3b6; } .drip-3 { left: 125px; height: 26px; } .drip-4 { left: 170px; height: 36px; width: 15px; background: #ffa3b6; } .drip-5 { left: 205px; height: 18px; }
+        .cake-middle-cream { position: absolute; top: 75px; left: 0; width: 240px; height: 15px; background: linear-gradient(to right, #6b1625, #ffffff 30%, #fff0f3 50%, #ffffff 70%, #6b1625); z-index: 3; }
+        .strawberries { position: absolute; top: 5px; left: 25px; width: 190px; height: 40px; z-index: 5; }
+        .berry { position: absolute; width: 18px; height: 22px; background: linear-gradient(135deg, #ff2a4b, #b3001b); border-radius: 50% 50% 40% 40%; }
+        .b1 { top: 15px; left: 15px; transform: rotate(-15deg); } .b2 { top: 22px; left: 60px; } .b3 { top: 24px; left: 110px; } .b4 { top: 14px; left: 155px; transform: rotate(20deg); }
+        .blow-btn { background: linear-gradient(135deg, #fffdfa 0%, #ffe5ec 100%); color: #d61a3c; border: none; padding: 16px 45px; font-size: 1.3rem; font-weight: bold; border-radius: 50px; }
+
+        /* PAGE 4: Comedy Prompt Room */
+        #question-room { display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(30, 0, 10, 0.85); padding: 40px 30px; border-radius: 25px; border: 2px solid rgba(255, 74, 107, 0.3); z-index: 20; }
+        .question-title { font-size: 2.2rem; margin-bottom: 15px; }
+        .comedy-hint { font-size: 1.1rem; color: #ffb3c1; margin-bottom: 30px; min-height: 24px; }
+        .btn-row { display: flex; gap: 20px; }
+        .choice-btn { padding: 14px 40px; font-size: 1.2rem; font-weight: bold; border-radius: 50px; border: none; }
+        .choice-btn.yes { background: linear-gradient(135deg, #2ec4b6 0%, #0f9f90 100%); color: white; }
+        .choice-btn.no { background: linear-gradient(135deg, #ff4a6b 0%, #b3001b 100%); color: white; }
+
+        /* PAGE 5: Final Gift Boxes Screen */
+        #gift-room { display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 20; width: 100%; }
+        .gift-title { font-size: 2.6rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,74,107,0.6); }
+        .gift-subtitle { font-size: 1.2rem; color: #ffccd5; margin-bottom: 40px; }
+        .box-container { display: flex; gap: 35px; justify-content: center; margin-bottom: 30px; }
+        .gift-box { font-size: 5.5rem; cursor: pointer; animation: floatGifts 3s ease-in-out infinite alternate; position: relative; }
+        @keyframes floatGifts { 0% { transform: translateY(0px); } 100% { transform: translateY(-15px); } }
+
+        .final-trigger-btn {
+            background: linear-gradient(135deg, #ff4a6b 0%, #cc1636 100%);
+            color: white; border: none; padding: 15px 40px; font-size: 1.25rem;
+            font-weight: bold; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(204,22,54,0.4);
+            display: none; transform: scale(0); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* --- MODAL OVERLAY FOR GIFT CONTENT --- */
+        .gift-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 0, 5, 0.98); z-index: 200;
+            display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+        .gift-overlay.active { display: flex; opacity: 1; }
+        .modal-content {
+            background: radial-gradient(circle, #3d0510 0%, #1a0106 100%);
+            width: 95%; max-width: 540px; padding: 25px; border-radius: 25px;
+            border: 2px solid #ff4a6b; text-align: center; position: relative;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+        }
+        .close-overlay-btn {
+            position: absolute; top: 15px; right: 20px; font-size: 1.5rem;
+            color: #ffb3c1; cursor: pointer; font-weight: bold; z-index: 10;
+        }
+
+        /* --- ANIMATION ENGINE WORKSPACE --- */
+        #story-canvas, #hug-canvas, #gallery-canvas {
+            width: 100%; height: 280px; background: #140004;
+            border-radius: 15px; margin: 15px 0; overflow: hidden;
+            position: relative; border: 1px dashed rgba(255,179,193,0.3);
+            display: none;
+        }
+        .timeline-banner {
+            position: absolute; top: 10px; width: 100%; text-align: center;
+            font-size: 1.1rem; font-weight: bold; color: #ffb3c1; letter-spacing: 1px;
+        }
+        
+        .actor { font-size: 3rem; position: absolute; bottom: 40px; transition: all 1.5s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0; z-index: 5; }
+        .desk { font-size: 2.2rem; position: absolute; bottom: 35px; transition: all 1.2s ease; opacity: 0; }
+        .phone-prop { font-size: 1.8rem; position: absolute; bottom: 95px; transition: all 1s ease; opacity: 0; animation: bounce 2s infinite alternate; }
+        
+        .giant-phone-bg {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            font-size: 8rem; opacity: 0; transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none; z-index: 1;
+        }
+
+        .kiss-mark { position: absolute; font-size: 2rem; opacity: 0; transition: all 0.5s ease; transform: scale(0); z-index: 6; }
+
+        .status-bubble {
+            position: absolute; bottom: 155px; left: 50%; transform: translateX(-50%) scale(0);
+            font-size: 0.95rem; background: white; color: #8a0f25; padding: 6px 14px;
+            border-radius: 20px; font-weight: bold; box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10;
+            white-space: nowrap;
+        }
+        .status-bubble::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            border-width: 8px 8px 0; border-style: solid; border-color: white transparent;
+        }
+
+        /* --- PHOTO CARD DECK LAYOUT (BOX 3) --- */
+        .photo-deck { display: flex; gap: 15px; justify-content: center; align-items: center; height: 100%; padding: 45px 10px 15px 10px; position: relative; }
+        .gallery-decor { position: absolute; top: 5px; font-size: 1.2rem; color: #ff6b8b; opacity: 0.7; animation: bounce 1.5s infinite alternate; width: 100%; text-align: center; }
+        .polaroid-card { width: 140px; height: 190px; perspective: 600px; cursor: pointer; }
+        .polaroid-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+        .polaroid-card.flipped .polaroid-inner { transform: rotateY(180deg); }
+        .polaroid-front, .polaroid-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 4px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+        .polaroid-front { background: #fffdfa; border: 6px solid #fffdfa; border-bottom: 32px solid #fffdfa; display: flex; flex-direction: column; }
+        .polaroid-front img { width: 100%; height: 135px; object-fit: cover; background-color: #e6dfd5; }
+        .polaroid-caption { font-size: 0.65rem; color: #555; font-weight: bold; margin-top: auto; text-align: center; font-style: italic; letter-spacing: 0.5px; }
+        .polaroid-back { background: radial-gradient(circle, #ffebee 0%, #fff0f2 100%); color: #8a0f25; transform: rotateY(180deg); padding: 12px; display: flex; justify-content: center; align-items: center; font-size: 0.85rem; font-weight: bold; line-height: 1.4; border: 4px solid #ffccd5; box-shadow: inset 0 0 10px rgba(255,107,139,0.15); }
+        .c1 { transform: rotate(-4deg); } .c2 { transform: rotate(2deg); } .c3 { transform: rotate(-2deg); }
+
+        /* --- PAGE 6: THE RED ENVELOPE ROOM --- */
+        #letter-room {
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #6b000f 0%, #290005 100%); z-index: 50;
+        }
+        
+        .envelope-container {
+            position: relative; width: 320px; height: 220px;
+            background: linear-gradient(135deg, #d61a3c 0%, #aa112b 100%);
+            border-radius: 0 0 15px 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: transform 0.4s ease; margin-bottom: 40px;
+        }
+        .envelope-container::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 0; height: 0;
+            border-left: 160px solid transparent; border-right: 160px solid transparent;
+            border-top: 120px solid #b81431; transform-origin: top; transition: transform 0.6s ease;
+            z-index: 3;
+        }
+        .envelope-container.open::before { transform: rotateX(180deg) translateY(0); z-index: 1; }
+
+        .wax-seal {
+            position: absolute; width: 65px; height: 65px;
+            background: radial-gradient(circle, #ff3355 0%, #99001a 100%);
+            border-radius: 50%; z-index: 4; display: flex; justify-content: center;
+            align-items: center; font-size: 2.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            border: 2px dashed rgba(255,255,255,0.2); transition: all 0.5s ease;
+        }
+        .envelope-container.open .wax-seal { transform: scale(0); opacity: 0; }
+
+        /* Scrollable Inside Letter Sheet */
+        .letter-paper {
+            position: absolute; width: 290px; height: auto; max-height: 380px;
+            background: #fffdfa; color: #2b0006; border-radius: 8px;
+            padding: 25px 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            overflow-y: auto; z-index: 2; transform: translateY(0) scale(0.9);
+            opacity: 0; transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
+            font-size: 1.05rem; line-height: 1.6; font-style: italic; text-align: left;
+        }
+        .envelope-container.open .letter-paper {
+            transform: translateY(-160px) scale(1.05); opacity: 1; z-index: 10;
+            width: 90vw; max-width: 440px; height: 480px;
+        }
+
+        /* Letter Embedded Photo Frame Slot */
+        .letter-embedded-photo {
+            width: 100%; max-width: 180px; aspect-ratio: 1/1; margin: 0 auto 20px auto;
+            border: 6px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            display: block; object-fit: cover; border-radius: 2px;
+        }
+
+        .letter-done-btn {
+            background: #8a0f25; color: white; border: none; padding: 10px 30px;
+            font-size: 1.1rem; font-weight: bold; border-radius: 25px; margin-top: 20px;
+            cursor: pointer; width: 100%; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* --- PAGE 7: GRAND FINALE NIGHT BEACH & FIREWORKS --- */
+        #beach-finale-room {
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, #020010 0%, #050926 45%, #0d1b40 75%, #1d3354 100%);
+            z-index: 60; text-align: center; padding: 20px;
+        }
+
+        /* Realistic Beach Ocean Waves & Shore Floor */
+        .beach-floor {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 120px;
+            background: linear-gradient(to top, #cca47c 0%, #997855 30%, #204060 80%, #1d3354 100%);
+            z-index: 1; opacity: 0.85;
+        }
+        .sea-waves {
+            position: absolute; bottom: 100px; left: 0; width: 100%; height: 15px;
+            background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(1px);
+            animation: waveMotion 4s ease-in-out infinite alternate; z-index: 2;
+        }
+        @keyframes waveMotion { 0% { transform: translateY(0) scaleY(0.8); opacity: 0.3; } 100% { transform: translateY(8px) scaleY(1.2); opacity: 0.7; } }
+
+        /* Beautiful Glittering Sky Message Typography Setup */
+        .glitter-sky-title {
+            font-size: 2.8rem; font-weight: bold; line-height: 1.4; max-width: 85%;
+            color: #fff; text-shadow: 0 0 8px #ff4a6b, 0 0 20px #ff4a6b, 0 0 35px #ff003c;
+            animation: skyGlow 2.5s ease-in-out infinite alternate, floatGifts 4s ease-in-out infinite alternate;
+            z-index: 5; font-family: 'Georgia', serif; letter-spacing: 1px; text-transform: uppercase;
+        }
+        @keyframes skyGlow { 
+            0% { text-shadow: 0 0 10px #fff, 0 0 20px #ff4a6b, 0 0 30px #ff4a6b, 0 0 40px #ff003c; transform: scale(0.98); } 
+            100% { text-shadow: 0 0 15px #ffb3c1, 0 0 30px #ff6b8b, 0 0 45px #ff4a6b, 0 0 60px #ff0055; transform: scale(1.02); } 
+        }
+
+        @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+
+        @media (max-width: 650px) {
+            .main-container { flex-direction: column; padding: 20px; gap: 20px; }
+            .photo-frame { max-width: 200px; }
+            .box-container { gap: 20px; } .gift-box { font-size: 4.5rem; }
+            .polaroid-card { width: 100px; height: 145px; }
+            .polaroid-front img { height: 95px; } .polaroid-front { border-bottom: 22px solid #fffdfa; }
+            .polaroid-back { font-size: 0.65rem; padding: 5px; }
+            .glitter-sky-title { font-size: 1.9rem; }
+            .envelope-container.open .letter-paper { height: 440px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="decorations-bg" id="flower-layer"></div>
+
+    <div class="main-container" id="lock-screen">
+        <div class="photo-side"><div class="photo-frame"><img src="6.png" alt="Our Memory"></div></div>
+        <div class="control-side">
+            <div id="timer"><span class="timer-label">🎂 Verification Secure 🎂</span>Enter Passcode</div>
+            <div class="passcode-display" id="display"></div>
+            <div class="keypad">
+                <button type="button" class="key" data-input="1">1</button><button type="button" class="key" data-input="2">2</button><button type="button" class="key" data-input="3">3</button>
+                <button type="button" class="key" data-input="4">4</button><button type="button" class="key" data-input="5">5</button><button type="button" class="key" data-input="6">6</button>
+                <button type="button" class="key" data-input="7">7</button><button type="button" class="key" data-input="8">8</button><button type="button" class="key" data-input="9">9</button>
+                <button type="button" class="key clear" data-input="clear">Clear</button><button type="button" class="key" data-input="0">0</button><button type="button" class="key enter" data-input="enter">Enter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="celebration-screen"><h1 class="bday-text">✨ Happy Birthday! ✨</h1></div>
+
+    <div id="cake-section">
+        <h2 class="cake-title" id="room-headline">Make a wish,kunjuu 🎂</h2>
+        <div class="cake-display">
+            <div class="cake-stand"></div>
+            <div class="candle-wrapper"><div class="real-flame" id="candle-flame"></div><div class="real-candle"></div></div>
+            <div class="cake-body">
+                <div class="cake-top-surface"></div>
+                <div class="frosting-drips"><div class="drip drip-1"></div><div class="drip drip-2"></div><div class="drip drip-3"></div><div class="drip drip-4"></div><div class="drip drip-5"></div></div>
+                <div class="cake-middle-cream"></div>
+                <div class="strawberries"><div class="berry b1"></div><div class="berry b2"></div><div class="berry b3"></div><div class="berry b4"></div></div>
+            </div>
+        </div>
+        <button type="button" class="blow-btn" id="blow-action-btn">Blow Candle</button>
+    </div>
+
+    <div id="question-room">
+        <h2 class="question-title">kuttyki gift vandee 😉</h2>
+        <div class="comedy-hint" id="joke-text"></div>
+        <div class="btn-row">
+            <button type="button" class="choice-btn yes" id="yes-btn">Yes!</button>
+            <button type="button" class="choice-btn no" id="no-btn">No</button>
+        </div>
+    </div>
+
+    <div id="gift-room">
+        <h1 class="gift-title">Your Birthday Gifts! 🎁</h1>
+        <p class="gift-subtitle">Pick a box to open your surprise, love...</p>
+        <div class="box-container">
+            <div class="gift-box" id="gift1-trigger">🎁</div>
+            <div class="gift-box" id="gift2-trigger">💝</div>
+            <div class="gift-box" id="gift3-trigger">🛍️</div>
+        </div>
+        <button type="button" class="final-trigger-btn" id="open-letter-room-btn">Open My Final Letter 💌</button>
+    </div>
+
+    <div class="gift-overlay" id="content-modal">
+        <div class="modal-content">
+            <div class="close-overlay-btn" id="close-modal-btn">×</div>
+            <h2 id="modal-title" style="color: #fffbfa; margin-bottom: 5px;">Surprise!</h2>
+            
+            <div id="story-canvas">
+                <div class="giant-phone-bg" id="bg-phone">📱❤️</div>
+                <div class="timeline-banner" id="scene-banner">Act 1: Strangers</div>
+                <div class="desk" id="desk-left" style="left: 25px;">🪑</div>
+                <div class="desk" id="desk-right" style="right: 25px;">🪑</div>
+                <div class="phone-prop" id="phone-left" style="left: 40px;">📱</div>
+                <div class="phone-prop" id="phone-right" style="right: 40px;">📱</div>
+                <div class="actor" id="boy-avatar">👦</div>
+                <div class="actor" id="girl-avatar">👧</div>
+                <div class="status-bubble" id="story-bubble">We started as school strangers...</div>
+            </div>
+
+            <div id="hug-canvas">
+                <div class="kiss-mark" id="k1" style="top: 40px; left: 35%;">💋</div>
+                <div class="kiss-mark" id="k2" style="top: 80px; right: 30%;">💋</div>
+                <div class="kiss-mark" id="k3" style="bottom: 50px; left: 45%;">💋</div>
+                <div class="actor" id="hug-boy" style="left: 20px;">👦</div>
+                <div class="actor" id="hug-girl" style="right: 20px;">👧</div>
+                <div class="status-bubble" id="hug-bubble">Come here... ♥️</div>
+            </div>
+
+            <div id="gallery-canvas">
+                <div class="gallery-decor">✨ 💡 Fairy Lights & Hearts 💡 ✨</div>
+                <div class="photo-deck">
+                    <div class="polaroid-card c1" onclick="this.classList.toggle('flipped')">
+                        <div class="polaroid-inner">
+                            <div class="polaroid-front"><img src="4.png" alt="Memory 1"><div class="polaroid-caption">Tap to read 🔍</div></div>
+                            <div class="polaroid-back">You make my heart smile every single day. Happy Birthday! 😘</div>
+                        </div>
+                    </div>
+                    <div class="polaroid-card c2" onclick="this.classList.toggle('flipped')">
+                        <div class="polaroid-inner">
+                            <div class="polaroid-front"><img src="2.png" alt="Memory 2"><div class="polaroid-caption">Tap to read 🔍</div></div>
+                            <div class="polaroid-back">To the prettiest girl in the world, I love you infinitely! 💕</div>
+                        </div>
+                    </div>
+                    <div class="polaroid-card c3" onclick="this.classList.toggle('flipped')">
+                        <div class="polaroid-inner">
+                            <div class="polaroid-front"><img src="3.png" alt="Memory 3"><div class="polaroid-caption">Tap to read 🔍</div></div>
+                            <div class="polaroid-back">Here's to us, our phone calls, and forever. Best 15 years ever! 🥂</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p id="modal-text" style="line-height: 1.5; color: #ffccd5; font-size: 1.2rem; font-weight: bold; padding: 5px 0;"></p>
+        </div>
+    </div>
+
+    <div id="letter-room">
+        <h2 style="color: #ffccd5; margin-bottom: 25px; font-style: italic; font-size: 1.6rem;">One Last Thing... 🌹</h2>
+        <div class="envelope-container" id="wax-envelope" onclick="openLoveLetter()">
+            <div class="wax-seal">❤️</div>
+            <div class="letter-paper" id="actual-letter-content">
+                </div>
+        </div>
+    </div>
+
+    <div id="beach-finale-room">
+        <h1 class="glitter-sky-title">Happy Birthday Kunjuuu ♥️<br>Love You</h1>
+        <div class="sea-waves"></div>
+        <div class="beach-floor"></div>
+    </div>
+
+    <script>
+        const CORRECT_PASSCODE = "1375"; 
+        let enteredCode = "";
+        let openedGifts = { 1: false, 2: false, 3: false };
+        let beachFireworkInterval = null;
+
+        const attachEvent = (element, callback) => {
+            if (!element) return;
+            const handler = (e) => { e.preventDefault(); e.stopPropagation(); callback(); };
+            if ('ontouchstart' in window) element.addEventListener('touchstart', handler, { passive: false });
+            else element.addEventListener('click', handler);
+        };
+
+        document.querySelectorAll('.key').forEach(button => {
+            attachEvent(button, () => handlePress(button.getAttribute('data-input')));
+        });
+
+        attachEvent(document.getElementById('blow-action-btn'), blowCandle);
+        attachEvent(document.getElementById('yes-btn'), goToGifts);
+        attachEvent(document.getElementById('no-btn'), triggerNoJoke);
+        attachEvent(document.getElementById('close-modal-btn'), closeModal);
+        attachEvent(document.getElementById('open-letter-room-btn'), shiftToLetterRoom);
+
+        attachEvent(document.getElementById('gift1-trigger'), () => openGift(1));
+        attachEvent(document.getElementById('gift2-trigger'), () => openGift(2));
+        attachEvent(document.getElementById('gift3-trigger'), () => openGift(3));
+
+        function handlePress(input) {
+            if (input === 'clear') { enteredCode = ""; updateDisplay(); return; }
+            if (input === 'enter') { checkPasscode(); return; }
+            if (enteredCode.length < 8) { enteredCode += input; updateDisplay(); }
+        }
+
+        function updateDisplay() { document.getElementById("display").innerText = "♥ ".repeat(enteredCode.length); }
+
+        function checkPasscode() {
+            if (enteredCode === CORRECT_PASSCODE) triggerPopUpCelebration();
+            else { alert("Incorrect Passcode. Try again, love! 🌹"); enteredCode = ""; updateDisplay(); }
+        }
+
+        function triggerPopUpCelebration() {
+            const bdayOverlay = document.getElementById('celebration-screen');
+            document.getElementById('lock-screen').style.display = 'none';
+            bdayOverlay.classList.add('active');
+            launchFirecrackers(4000);
+            setTimeout(() => { bdayOverlay.style.display = 'none'; document.getElementById('cake-section').style.display = 'flex'; }, 2000);
+        }
+
+        function blowCandle() {
+            document.getElementById('candle-flame').style.transform = 'scale(0)';
+            document.getElementById('room-headline').innerHTML = "✨ Happy Birthday Kunjuuu\u2665\ufe0f ✨";
+            document.getElementById('blow-action-btn').innerText = "I Love You! \ud83c\udf89";
+            document.getElementById('blow-action-btn').disabled = true;
+            launchFirecrackers(4000);
+            setTimeout(() => { document.getElementById('cake-section').style.display = 'none'; document.getElementById('question-room').style.display = 'flex'; }, 3500);
+        }
+
+        function triggerNoJoke() {
+            document.getElementById('joke-text').innerText = "Why no?Please click Yes... ❤️";
+            document.getElementById('no-btn').style.display = 'none';
+        }
+
+        function goToGifts() {
+            document.getElementById('question-room').style.display = 'none';
+            document.getElementById('gift-room').style.display = 'flex';
+            launchFirecrackers(3000);
+        }
+
+        function openGift(boxNumber) {
+            openedGifts[boxNumber] = true;
+            const modal = document.getElementById('content-modal');
+            const title = document.getElementById('modal-title');
+            const text = document.getElementById('modal-text');
+            const canvas1 = document.getElementById('story-canvas');
+            const canvas2 = document.getElementById('hug-canvas');
+            const canvas3 = document.getElementById('gallery-canvas');
+
+            title.innerText = ""; text.innerText = "";
+            canvas1.style.display = "none"; canvas2.style.display = "none"; canvas3.style.display = "none";
+            modal.classList.add('active');
+
+            if (boxNumber === 1) {
+                title.innerText = "Our 15-Year Evolution 👣"; canvas1.style.display = "block"; runLoveStoryAnimation();
+            } else if (boxNumber === 2) {
+                title.innerText = "A Big Virtual Hug! 💝"; canvas2.style.display = "block"; text.innerText = "Happy Birthday my love! ❤️ Love you so much!"; runHugAnimation();
+            } else {
+                title.innerText = "Our Memory Lane 🛍️"; canvas3.style.display = "block"; text.innerText = "Tap on any photo to read a hidden message... 🤫💖";
+                document.querySelectorAll('.polaroid-card').forEach(card => card.classList.remove('flipped'));
+                launchFirecrackers(1500);
+            }
+
+            if (openedGifts[1] && openedGifts[2] && openedGifts[3]) {
+                const finalBtn = document.getElementById('open-letter-room-btn');
+                finalBtn.style.display = "block";
+                setTimeout(() => { finalBtn.style.transform = "scale(1)"; }, 100);
+            }
+        }
+
+        function runLoveStoryAnimation() {
+            const banner = document.getElementById('scene-banner'); const bubble = document.getElementById('story-bubble');
+            const boy = document.getElementById('boy-avatar'); const girl = document.getElementById('girl-avatar');
+            const dLeft = document.getElementById('desk-left'); const dRight = document.getElementById('desk-right');
+            const pLeft = document.getElementById('phone-left'); const pRight = document.getElementById('phone-right'); const bgPhone = document.getElementById('bg-phone');
+
+            boy.style.left = "30px"; boy.style.opacity = "1"; boy.innerText = "👦"; girl.style.right = "30px"; girl.style.opacity = "1";
+            dLeft.style.opacity = "1"; dLeft.style.transform = "scale(1)"; dRight.style.opacity = "1"; dRight.style.transform = "scale(1)";
+            pLeft.style.opacity = "1"; pLeft.style.transform = "scale(1)"; pRight.style.opacity = "1"; pRight.style.transform = "scale(1)";
+            bgPhone.style.transform = "translate(-50%, -50%) scale(0)"; bgPhone.style.opacity = "0";
+
+            banner.innerText = "School Days 🏫"; bubble.innerText = "We were strangers in school... 💬"; bubble.style.transform = "translateX(-50%) scale(1)";
+
+            setTimeout(() => { bubble.style.transform = "translateX(-50%) scale(0)"; dLeft.style.transform = "translateY(120px)"; dLeft.style.opacity = "0"; dRight.style.transform = "translateY(120px)"; dRight.style.opacity = "0"; pLeft.style.left = "25%"; pRight.style.right = "25%"; boy.style.left = "28%"; girl.style.right = "28%"; }, 2500);
+            setTimeout(() => { banner.innerText = "Connected via Screen 📱"; bubble.innerText = "But a phone made us best friends! ✨"; bubble.style.transform = "translateX(-50%) scale(1)"; }, 3800);
+            setTimeout(() => { bubble.style.transform = "translateX(-50%) scale(0)"; pLeft.style.opacity = "0"; pRight.style.opacity = "0"; boy.style.left = "42%"; girl.style.right = "42%"; }, 6200);
+            setTimeout(() => { banner.innerText = "15 Years: Our Evolution 👩‍❤️‍👨"; boy.innerText = "👫"; girl.style.opacity = "0"; bgPhone.style.transform = "translate(-50%, -50%) scale(1)"; bgPhone.style.opacity = "0.2"; bubble.innerText = "15 Years of us. My forever love! ❤️"; bubble.style.transform = "translateX(-50%) scale(1)"; launchFirecrackers(2500); }, 7800);
+        }
+
+        function runHugAnimation() {
+            const hBoy = document.getElementById('hug-boy'); const hGirl = document.getElementById('hug-girl'); const hBubble = document.getElementById('hug-bubble');
+            const k1 = document.getElementById('k1'); const k2 = document.getElementById('k2'); const k3 = document.getElementById('k3');
+
+            hBoy.style.left = "30px"; hBoy.style.opacity = "1"; hBoy.innerText = "👦"; hGirl.style.right = "30px"; hGirl.style.opacity = "1";
+            hBubble.innerText = "Come here... ♥️"; hBubble.style.transform = "translateX(-50%) scale(1)";
+            [k1, k2, k3].forEach(k => { k.style.opacity = "0"; k.style.transform = "scale(0)"; });
+
+            setTimeout(() => { hBubble.style.transform = "translateX(-50%) scale(0)"; hBoy.style.left = "43%"; hGirl.style.right = "43%"; }, 1500);
+            setTimeout(() => { hBoy.innerText = "🤗❤️"; hGirl.style.opacity = "0"; hBubble.innerText = "Muuuahh! 💋 Happy Birthday!"; hBubble.style.transform = "translateX(-50%) scale(1)";
+                setTimeout(() => { k1.style.opacity = "1"; k1.style.transform = "scale(1.3) rotate(-15deg)"; }, 300);
+                setTimeout(() => { k2.style.opacity = "1"; k2.style.transform = "scale(1.5) rotate(10deg)"; }, 700);
+                setTimeout(() => { k3.style.opacity = "1"; k3.style.transform = "scale(1.2) rotate(20deg)"; }, 1100);
+                launchFirecrackers(1500);
+            }, 3000);
+        }
+
+        function closeModal() { document.getElementById('content-modal').classList.remove('active'); }
+
+        /* --- LETTER SETUP & FINAL ROUTE ENGINE --- */
+        function shiftToLetterRoom() {
+            document.getElementById('gift-room').style.display = 'none';
+            document.getElementById('letter-room').style.display = 'flex';
+            
+            // INDOOR LETTER DISPLAY PIPELINE
+            document.getElementById('actual-letter-content').innerHTML = `
+                <img src="5.png" alt="Our Special Memory" class="letter-embedded-photo">
+                <p style="margin-bottom:15px; font-weight:bold; color:#8a0f25;">My Dearest Kunjuuu,</p>
+                <p style="margin-bottom:12px;">kunjuuu innu ninnde birthdayyy annuuu happy bithday ❤️</p>
+                <p style="margin-bottom:12px;">eda innu serikum ninne kandu wish cheyanam ennu okke undayii but ee nashicha neet nale ayi poyille illakil namaku powikayirunu kozapam illa kurachu divasam kazijuu set akka namakutaa.</p>
+                <p style="margin-bottom:12px;">iniku ithil athikam onnum ezuthan patilladaa illakil njan kure ezuthiyenne pinne emogiyum patilla njan ethayalum nee ithu full kozumpolakum njan instayil vere ezuthi idam ee year njan kurachu creative and modern avan kokiyathaa apo seri ithil ezuthan oru sugam illa.</p>
+                <p style="margin-bottom:15px;">apo onnu kudiyum parayaa happy burthday kunjuuuu love you umma innu ninde divasam annudaa powikii 🥂💋</p>
+                <p style="text-align:right; font-weight:bold; color:#8a0f25; margin-bottom: 25px;">Yours Forever, <br>❤️</p>
+                <button type="button" class="letter-done-btn" onclick="triggerBeachFinale(event)">Finish ❤️</button>
+            `;
+        }
+
+        function openLoveLetter() {
+            const envelope = document.getElementById('wax-envelope');
+            if(!envelope.classList.contains('open')) {
+                envelope.classList.add('open');
+                setTimeout(() => { launchFirecrackers(3000); }, 800);
+            }
+        }
+
+        /* --- THE GRAND FINALE BEACH & FIREWORKS SCENE ENGINE --- */
+        function triggerBeachFinale(event) {
+            if(event) { event.preventDefault(); event.stopPropagation(); }
+            
+            document.getElementById('letter-room').style.display = 'none';
+            document.getElementById('flower-layer').style.display = 'none'; // Clear out the petals for clean night view
+            document.getElementById('beach-finale-room').style.display = 'flex';
+            
+            // Firecracker Engine Loop over the simulated ocean water horizon
+            beachFireworkInterval = setInterval(() => {
+                confetti({ particleCount: 30, angle: 60, spread: 65, origin: { x: 0, y: 0.6 }, zIndex: 100 });
+                confetti({ particleCount: 30, angle: 120, spread: 65, origin: { x: 1, y: 0.6 }, zIndex: 100 });
+                confetti({ particleCount: 25, spread: 100, origin: { x: Math.random(), y: Math.random() * 0.4 + 0.2 }, zIndex: 100 });
+            }, 800);
+        }
+
+        function launchFirecrackers(durationMs) {
+            var animationEnd = Date.now() + durationMs; var defaults = { startVelocity: 25, spread: 360, ticks: 50, zIndex: 250 };
+            var interval = setInterval(function() {
+              var timeLeft = animationEnd - Date.now(); if (timeLeft <= 0) return clearInterval(interval);
+              confetti(Object.assign({}, defaults, { particleCount: 20, origin: { x: Math.random() * 0.4, y: Math.random() - 0.2 } }));
+              confetti(Object.assign({}, defaults, { particleCount: 20, origin: { x: Math.random() * 0.4 + 0.6, y: Math.random() - 0.2 } }));
+            }, 300);
+        }
+
+        const flowerLayer = document.getElementById('flower-layer');
+        for (let i = 0; i < 25; i++) {
+            const element = document.createElement('span'); element.className = 'petal'; element.innerText = '🌸';
+            element.style.left = Math.random() * 100 + 'vw'; element.style.animationDuration = (Math.random() * 4 + 4) + 's';
+            flowerLayer.appendChild(element);
+        }
+    </script>
+</body>
+</html>
